@@ -1,0 +1,42 @@
+version: '3'
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_BACKEND_URL=http://backend:5000
+    networks:
+      - mern-network
+
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/usr/src/app  # Bind mount the backend directory
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/mern-sample
+    networks:
+      - mern-network
+
+  mongo:
+    image: mongo:4.2
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - mern-network
+
+volumes:
+  mongo-data:
+
+networks:
+  mern-network:
