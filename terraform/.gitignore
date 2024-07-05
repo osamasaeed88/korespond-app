@@ -1,0 +1,26 @@
+# Ignore Terraform local state
+**/.terraform/*
+
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Ignore Terraform variables file
+*.tfvars
+*.auto.tfvars
+
+# Ignore Terraform log files
+terraform.log
+terraform.tfstate.log
+
+# Ignore system and editor files
+.DS_Store
+*.swp
+*.vscode/
+*.idea/
+
+# Ignore compiled provider plugins
+**/.terraform/plugins/*
+
+# Ignore any sensitive or generated files
+secrets.yaml
