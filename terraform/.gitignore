@@ -22,5 +22,8 @@ terraform.tfstate.log
 # Ignore compiled provider plugins
 **/.terraform/plugins/*
 
+# Ignore large provider executable files
+**/.terraform/providers/registry.terraform.io/hashicorp/aws/*/terraform-provider-aws_*.exe
+
 # Ignore any sensitive or generated files
 secrets.yaml
