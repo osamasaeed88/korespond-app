@@ -8,7 +8,7 @@ variable "subnet_cidrs" {
 }
 
 variable "ami_id" {
-  default = "ami-0577a6ec46b349644" # Ubuntu 20.04 LTS in us-west-2
+  default = "ami-08635203447d68380" # Ubuntu 20.04 LTS in ap-south-1
 }
 
 variable "instance_type" {
@@ -17,10 +17,6 @@ variable "instance_type" {
 
 variable "key_name" {
   default = "korespond-keypair"
-}
-
-variable "lambda_source_code" {
-  default = "modules/lambda/ezyzip.zip"
 }
 
 variable "allocated_storage" {
@@ -76,4 +72,48 @@ variable "port" {
   description = "The port on which the DB instance accepts connections"
   type        = number
   default     = 3306
+}
+
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
+  type        = string
+}
+
+variable "node_group_name" {
+  description = "Name of the EKS node group"
+  type        = string
+}
+
+variable "desired_size" {
+  description = "Desired number of worker nodes"
+  type        = number
+  default     = 2
+}
+
+variable "max_size" {
+  description = "Maximum number of worker nodes"
+  type        = number
+  default     = 3
+}
+
+variable "min_size" {
+  description = "Minimum number of worker nodes"
+  type        = number
+  default     = 1
+}
+
+variable "instance_types" {
+  description = "Instance types for the worker nodes"
+  type        = list(string)
+  default     = ["t3.medium"]
+}
+
+variable "role_name" {
+  description = "Name of the IAM role for the EKS cluster"
+  type        = string
+}
+
+variable "eks_node_role_name" {
+  description = "Name of the IAM role for the EKS worker nodes"
+  type        = string
 }

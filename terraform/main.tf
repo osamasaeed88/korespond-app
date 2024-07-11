@@ -1,7 +1,8 @@
 module "vpc" {
-  source      = "./modules/vpc"
-  vpc_cidr    = var.vpc_cidr
-  subnet_cidrs = var.subnet_cidrs
+  source                      = "./modules/vpc"
+  vpc_cidr_block              = "10.0.0.0/16"
+  public_subnet_cidr_blocks   = ["10.0.10.0/24", "10.0.20.0/24"]
+  private_subnet_cidr_blocks  = ["10.0.30.0/24", "10.0.40.0/24"]
 }
 
 module "ec2" {
@@ -9,27 +10,23 @@ module "ec2" {
   ami_id      = var.ami_id
   instance_type = var.instance_type
   key_name    = var.key_name
-  subnet_id   = module.vpc.subnet_ids[0]
+  subnet_id   = module.vpc.public_subnet_ids[0]
   vpc_id      = module.vpc.vpc_id
+}
+
+module "eks" {
+  source = "./modules/eks"
+  vpc_id = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnet_ids
+  key_name  = var.key_name
 }
 
 module "ecr" {
   source = "./modules/ecr"
 }
 
-module "eks" {
-  source = "./modules/eks"
-  subnet_ids = module.vpc.subnet_ids
-  cluster_role_arn = module.iam.eks_role_arn
-}
-
 module "iam" {
   source = "./modules/iam"
-}
-
-module "lambda" {
-  source      = "./modules/lambda"
-  source_code = var.lambda_source_code
 }
 
 module "rds" {
@@ -42,7 +39,7 @@ module "rds" {
   username          = var.username
   password          = var.password
   parameter_group_name = var.parameter_group_name
-  subnet_ids        = module.vpc.subnet_ids
+  subnet_ids        = module.vpc.private_subnet_ids
   vpc_id            = module.vpc.vpc_id
   port              = var.port
 }
