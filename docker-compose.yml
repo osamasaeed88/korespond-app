@@ -1,3 +1,113 @@
+# version: '3'
+# services:
+#   frontend:
+#     build:
+#       context: ./frontend
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - backend
+#     environment:
+#       - REACT_APP_BACKEND_URL=http://backend:5000
+#     networks:
+#       - mern-network
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "200k"
+#         max-file: "10"
+
+#   backend:
+#     build:
+#       context: ./backend
+#     volumes:
+#       - ./backend:/usr/src/app  # Bind mount the backend directory
+#     ports:
+#       - "5000:5000"
+#     depends_on:
+#       - mongo
+#     environment:
+#       - MONGO_URL=mongodb://mongo:27017/korespond-app
+#     networks:
+#       - mern-network
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "200k"
+#         max-file: "10"
+
+#   mongo:
+#     image: mongo:4.2
+#     ports:
+#       - "27017:27017"
+#     volumes:
+#       - mongo-data:/data/db
+#     networks:
+#       - mern-network
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "200k"
+#         max-file: "10"
+
+#   prometheus:
+#     image: prom/prometheus
+#     ports:
+#       - "9090:9090"
+#     volumes:
+#       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+#     networks:
+#       - mern-network
+
+#   elasticsearch:
+#     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+#     environment:
+#       - discovery.type=single-node
+#     ports:
+#       - "9200:9200"
+#     networks:
+#       - mern-network
+   
+#   logstash:
+#     image: docker.elastic.co/logstash/logstash:7.9.3
+#     volumes:
+#       - ./logstash/pipeline/:/usr/share/logstash/pipeline/
+#     depends_on:
+#       - elasticsearch
+#     networks:
+#       - mern-network
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "200k"
+#         max-file: "10"
+  
+#   kibana:
+#     image: docker.elastic.co/kibana/kibana:7.9.3
+#     ports:
+#       - "5601:5601"
+#     depends_on:
+#       - elasticsearch
+#     networks:
+#       - mern-network
+  
+#   jenkins:
+#     image: jenkins/jenkins:lts
+#     ports:
+#       - "8080:8080"
+#       - "50000:50000"
+#     volumes:
+#       - jenkins-data:/var/jenkins_home
+#     networks:
+#       - mern-network  
+
+# volumes:
+#   mongo-data:
+#   jenkins-data:
+
+# networks:
+#   mern-network:
+
 version: '3'
 services:
   frontend:
@@ -16,13 +126,13 @@ services:
     build:
       context: ./backend
     volumes:
-      - ./backend:/usr/src/app  # Bind mount the backend directory
+      - ./backend:/usr/src/app
     ports:
       - "5000:5000"
     depends_on:
       - mongo
     environment:
-      - MONGO_URL=mongodb://mongo:27017/mern-sample
+      - MONGO_URL=mongodb://mongo:27017/korespond-app
     networks:
       - mern-network
 
@@ -35,8 +145,84 @@ services:
     networks:
       - mern-network
 
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+    networks:
+      - mern-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - mern-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.9.3
+    ports:
+      - "5044:5044"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    networks:
+      - mern-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.9.3
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    networks:
+      - mern-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - mern-network
+
+  registry:
+    image: registry:2
+    ports:
+      - "5001:5000"
+    networks:
+      - mern-network
+
+  filebeat:
+    image: custom-filebeat:7.9.3
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - mern-network
+    restart: unless-stopped
+
+  trivy:
+    image: aquasec/trivy:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: ["trivy"]
+
 volumes:
   mongo-data:
+  jenkins-data:
 
 networks:
   mern-network:

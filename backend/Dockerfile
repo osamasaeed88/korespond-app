@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install dependencies and nodemon
 RUN npm install && npm install -g nodemon
 
+# Install express (add this line)
+#RUN npm install express
+
 # Copy the rest of the application code
 COPY . .
 
